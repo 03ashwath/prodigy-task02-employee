@@ -85,6 +85,24 @@ app.UseSwaggerUI();
 app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
+// Seed admin user
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+    
+    if (!db.Users.Any(u => u.Email == "admin@test.com"))
+    {
+        db.Users.Add(new AuthApp.Models.User
+        {
+            Name = "Admin User",
+            Email = "admin@test.com",
+            Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
+            Role = "admin"
+        });
+        db.SaveChanges();
+    }
+}
 app.MapControllers();
 app.UseDefaultFiles();
 app.UseStaticFiles();
